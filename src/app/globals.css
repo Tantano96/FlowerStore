@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1e1e1e;
+  
+  --primary: #d4a373; /* Rose Gold / Premium Beige */
+  --primary-foreground: #ffffff;
+  
+  --accent: #e9c46a; /* Gold Accent */
+  --muted: #f4f1de;
+  --muted-foreground: #6c757d;
+  
+  --border: #e9ecef;
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+}
+
+/* Glassmorphism card utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth zoom on hover */
+.zoom-hover {
+  transition: transform 0.3s ease;
+}
+.zoom-hover:hover {
+  transform: scale(1.03);
+}
+
+/* Custom premium buttons */
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.btn-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s ease;
+}
+.btn-premium:hover::after {
+  left: 100%;
+}
+
+/* Premium input focus */
+.input-premium {
+  border: 1px solid var(--border);
+  transition: all 0.2s ease-in-out;
+}
+.input-premium:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(212, 163, 115, 0.25);
+  outline: none;
+}
+
+/* Blog content style */
+.prose h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1e1e1e;
+}
+.prose h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #1e1e1e;
+}
+.prose p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #4a4a4a;
+}
+.prose ul, .prose ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  list-style-type: disc;
+}
+.prose li {
+  margin-bottom: 0.5rem;
+  color: #4a4a4a;
+}
