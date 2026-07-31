@@ -17,7 +17,7 @@ let localPosts = [...mockPosts];
 const localCategories = [...mockCategories];
 const localProductCategories = [...mockProductCategories];
 const localTags = [...mockTags];
-const localBanners = [...mockBanners];
+let localBanners = [...mockBanners];
 const localSettings = [...mockSettings];
 const localOrders: Order[] = [];
 
