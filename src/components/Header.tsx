@@ -47,7 +47,6 @@ export const Header: React.FC = () => {
   };
 
   const siteLogo = settings.site_logo || '💄 CoolBeauty';
-  const hotline = settings.contact_phone || '1900 6789';
 
   return (
     <>

@@ -13,9 +13,26 @@ function ProductListContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category') || '';
   
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filter States
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<string>('all');
+
+  const getProductBrand = (product: Product) => {
+    const name = product.name.toLowerCase();
+    if (name.includes("l'occitane")) return "L'Occitane";
+    if (name.includes("acneclear") || name.includes("acne")) return "AcneClear";
+    if (name.includes("victoria")) return "Victoria's Secret";
+    if (name.includes("ibuki")) return "Ibuki";
+    if (name.includes("mac")) return "MAC";
+    return "Khác";
+  };
+
+  const brands = ["Khác", "L'Occitane", "AcneClear", "Victoria's Secret", "Ibuki", "MAC"];
 
   useEffect(() => {
     async function loadData() {
@@ -26,17 +43,36 @@ function ProductListContent() {
       ]);
       
       setCategories(allCats);
-      
-      // Filter products by category if param present
-      if (categoryParam) {
-        setProducts(allProds.filter(p => p.product_categories?.slug === categoryParam));
-      } else {
-        setProducts(allProds);
-      }
+      setAllProducts(allProds);
       setLoading(false);
     }
     loadData();
-  }, [categoryParam]);
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...allProducts];
+
+    // Filter by Category url param
+    if (categoryParam) {
+      filtered = filtered.filter(p => p.product_categories?.slug === categoryParam);
+    }
+
+    // Filter by Brand checkboxes
+    if (selectedBrands.length > 0) {
+      filtered = filtered.filter(p => selectedBrands.includes(getProductBrand(p)));
+    }
+
+    // Filter by Price range
+    if (priceRange === 'under-300') {
+      filtered = filtered.filter(p => p.price < 300000);
+    } else if (priceRange === '300-600') {
+      filtered = filtered.filter(p => p.price >= 300000 && p.price <= 600000);
+    } else if (priceRange === 'above-600') {
+      filtered = filtered.filter(p => p.price > 600000);
+    }
+
+    setProducts(filtered);
+  }, [categoryParam, allProducts, selectedBrands, priceRange]);
 
   const currentCategory = categories.find(c => c.slug === categoryParam);
 
@@ -59,7 +95,7 @@ function ProductListContent() {
       {/* Hero Category Banner/Header */}
       <div className="bg-gray-50 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-3 max-w-xl">
-          <h1 className="text-2xl md:text-4xl font-bold font-serif text-gray-950">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-950">
             {currentCategory ? currentCategory.name : 'Tất Cả Sản Phẩm'}
           </h1>
           <p className="text-sm text-gray-500 font-light leading-relaxed">
@@ -79,16 +115,18 @@ function ProductListContent() {
         
         {/* Sidebar Filters */}
         <aside className="space-y-6">
-          <div className="border border-gray-100 rounded-2xl p-5 space-y-4">
+          
+          {/* Categories Filter */}
+          <div className="border border-gray-100 rounded-2xl p-5 space-y-4 bg-white shadow-sm">
             <h3 className="text-sm font-bold text-gray-900 flex items-center border-b border-gray-100 pb-3">
-              <SlidersHorizontal className="w-4 h-4 mr-2 text-primary" /> Danh Mục
+              <SlidersHorizontal className="w-4 h-4 mr-2 text-[#ff5258]" /> Danh Mục
             </h3>
             <ul className="space-y-2">
               <li>
                 <Link 
                   href="/products" 
                   className={`block py-1.5 text-sm transition-colors ${
-                    !categoryParam ? 'text-primary font-bold' : 'text-gray-600 hover:text-primary'
+                    !categoryParam ? 'text-[#ff5258] font-bold' : 'text-gray-600 hover:text-[#ff5258]'
                   }`}
                 >
                   Tất cả sản phẩm
@@ -99,7 +137,7 @@ function ProductListContent() {
                   <Link 
                     href={`/products?category=${cat.slug}`} 
                     className={`block py-1.5 text-sm transition-colors ${
-                      categoryParam === cat.slug ? 'text-primary font-bold' : 'text-gray-600 hover:text-primary'
+                      categoryParam === cat.slug ? 'text-[#ff5258] font-bold' : 'text-gray-600 hover:text-[#ff5258]'
                     }`}
                   >
                     {cat.name}
@@ -108,6 +146,62 @@ function ProductListContent() {
               ))}
             </ul>
           </div>
+
+          {/* Brands Filter */}
+          <div className="border border-gray-100 rounded-2xl p-5 space-y-4 bg-white shadow-sm">
+            <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+              Thương Hiệu
+            </h3>
+            <div className="space-y-2">
+              {brands.map(brand => {
+                const isChecked = selectedBrands.includes(brand);
+                return (
+                  <label key={brand} className="flex items-center space-x-2.5 text-sm text-gray-600 cursor-pointer hover:text-[#ff5258]">
+                    <input 
+                      type="checkbox" 
+                      checked={isChecked}
+                      onChange={() => {
+                        if (isChecked) {
+                          setSelectedBrands(selectedBrands.filter(b => b !== brand));
+                        } else {
+                          setSelectedBrands([...selectedBrands, brand]);
+                        }
+                      }}
+                      className="rounded border-gray-300 text-[#ff5258] focus:ring-[#ff5258] w-4 h-4"
+                    />
+                    <span>{brand}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Price Range Filter */}
+          <div className="border border-gray-100 rounded-2xl p-5 space-y-4 bg-white shadow-sm">
+            <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
+              Khoảng Giá
+            </h3>
+            <div className="space-y-2">
+              {[
+                { id: 'all', label: 'Tất cả giá' },
+                { id: 'under-300', label: 'Dưới 300.000đ' },
+                { id: '300-600', label: '300.000đ - 600.000đ' },
+                { id: 'above-600', label: 'Trên 600.000đ' }
+              ].map(range => (range && (
+                <label key={range.id} className="flex items-center space-x-2.5 text-sm text-gray-600 cursor-pointer hover:text-[#ff5258]">
+                  <input 
+                    type="radio" 
+                    name="priceRange"
+                    checked={priceRange === range.id}
+                    onChange={() => setPriceRange(range.id)}
+                    className="text-[#ff5258] focus:ring-[#ff5258] w-4 h-4 border-gray-300"
+                  />
+                  <span>{range.label}</span>
+                </label>
+              )))}
+            </div>
+          </div>
+
         </aside>
 
         {/* Product Grid Area */}

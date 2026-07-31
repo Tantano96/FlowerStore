@@ -35,6 +35,7 @@ export default function AdminPage() {
   const [newProdCompare, setNewProdCompare] = useState('');
   const [newProdDesc, setNewProdDesc] = useState('');
   const [newProdImage, setNewProdImage] = useState('');
+  const [newProdImagesList, setNewProdImagesList] = useState<string[]>([]);
   const [newProdSku, setNewProdSku] = useState('');
 
   // New Post Form
@@ -125,9 +126,9 @@ export default function AdminPage() {
       featured: true
     };
     if (editingProduct) {
-      await dbService.updateProduct(editingProduct.id, prod, newProdImage ? [newProdImage] : []);
+      await dbService.updateProduct(editingProduct.id, prod, newProdImagesList);
     } else {
-      await dbService.createProduct(prod, newProdImage ? [newProdImage] : []);
+      await dbService.createProduct(prod, newProdImagesList);
     }
     setShowAddProduct(false);
     setEditingProduct(null);
@@ -139,6 +140,7 @@ export default function AdminPage() {
     setNewProdCompare('');
     setNewProdDesc('');
     setNewProdImage('');
+    setNewProdImagesList([]);
     setNewProdSku('');
   };
 
@@ -149,7 +151,8 @@ export default function AdminPage() {
     setNewProdPrice(prod.price.toString());
     setNewProdCompare(prod.compare_at_price?.toString() || '');
     setNewProdDesc(prod.description || '');
-    setNewProdImage(prod.product_images?.[0]?.image_url || '');
+    setNewProdImage('');
+    setNewProdImagesList(prod.product_images?.map(img => img.image_url) || []);
     setNewProdSku(prod.sku || '');
     setShowAddProduct(true);
   };
@@ -163,6 +166,7 @@ export default function AdminPage() {
     setNewProdCompare('');
     setNewProdDesc('');
     setNewProdImage('');
+    setNewProdImagesList([]);
     setNewProdSku('');
   };
 
@@ -408,10 +412,10 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-700 block">Hình ảnh sản phẩm</label>
+                    <label className="text-xs font-bold text-gray-700 block">Hình ảnh sản phẩm (Nhiều ảnh)</label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <span className="text-[10px] text-gray-500 font-light block">Tải từ thiết bị (lưu vào Supabase Storage):</span>
+                        <span className="text-[10px] text-gray-500 font-light block">Tải thêm ảnh từ thiết bị:</span>
                         <input 
                           type="file" 
                           accept="image/*"
@@ -419,7 +423,7 @@ export default function AdminPage() {
                             const file = e.target.files?.[0];
                             if (file) {
                               const url = await dbService.uploadImage(file);
-                              setNewProdImage(url);
+                              setNewProdImagesList([...newProdImagesList, url]);
                             }
                           }}
                           className="w-full p-2 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" 
@@ -427,19 +431,47 @@ export default function AdminPage() {
                       </div>
                       <div className="space-y-1">
                         <span className="text-[10px] text-gray-500 font-light block">Hoặc dán URL liên kết ảnh:</span>
-                        <input 
-                          type="url" 
-                          value={newProdImage} 
-                          onChange={e => setNewProdImage(e.target.value)} 
-                          placeholder="https://..."
-                          className="w-full p-2.5 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" 
-                        />
+                        <div className="flex space-x-2">
+                          <input 
+                            type="url" 
+                            value={newProdImage} 
+                            onChange={e => setNewProdImage(e.target.value)} 
+                            placeholder="https://..."
+                            className="flex-1 p-2.5 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if (newProdImage.trim()) {
+                                setNewProdImagesList([...newProdImagesList, newProdImage.trim()]);
+                                setNewProdImage('');
+                              }
+                            }}
+                            className="bg-primary text-white px-3 py-1 rounded text-xs hover:bg-opacity-90"
+                          >
+                            Thêm
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    {newProdImage && (
-                      <div className="pt-2">
-                        <span className="text-[10px] text-gray-400 font-light block mb-1">Xem trước hình ảnh:</span>
-                        <img src={newProdImage} alt="Preview" className="w-20 h-20 object-cover rounded-md border border-gray-200" />
+                    {newProdImagesList.length > 0 && (
+                      <div className="pt-3">
+                        <span className="text-[10px] text-gray-400 font-light block mb-2">Danh sách ảnh đã chọn ({newProdImagesList.length}):</span>
+                        <div className="flex flex-wrap gap-3">
+                          {newProdImagesList.map((imgUrl, idx) => (
+                            <div key={idx} className="relative w-16 h-16 border border-gray-200 rounded-md overflow-hidden group">
+                              <img src={imgUrl} alt="Prod Image" className="w-full h-full object-cover" />
+                              <button 
+                                type="button"
+                                onClick={() => setNewProdImagesList(newProdImagesList.filter((_, i) => i !== idx))}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4.5 h-4.5 text-[8px] flex items-center justify-center hover:bg-red-600 shadow-sm"
+                                title="Xóa ảnh này"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
