@@ -1,3 +1,4 @@
+// Trigger Vercel rebuild with env vars
 import { createClient } from '@supabase/supabase-js';
 import { 
   mockCategories, 
