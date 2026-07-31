@@ -81,10 +81,10 @@ export default function HomePage() {
                   <p className="text-white/90 text-sm md:text-lg max-w-xl mx-auto drop-shadow-sm font-light">
                     Khám phá dòng sản phẩm trang điểm & chăm sóc da đẳng cấp giúp tôn vinh diện mạo lịch lãm.
                   </p>
-                  {banner.link && (
+                  {banner.link_url && (
                     <div className="pt-2">
                       <Link
-                        href={banner.link}
+                        href={banner.link_url}
                         className="inline-block bg-white text-gray-900 font-semibold px-8 py-3.5 rounded-full text-xs md:text-sm hover:bg-primary hover:text-white transition-all shadow-lg hover:shadow-primary/30 uppercase tracking-widest btn-premium"
                       >
                         Mua Ngay

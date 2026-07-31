@@ -195,7 +195,7 @@ export const mockBanners: Banner[] = [
     id: 'a303493e-7833-4f9e-a89e-4e4f2081f271',
     title: 'Mỹ Phẩm Nam Giới Cao Cấp',
     image_url: 'https://images.unsplash.com/photo-1608248597481-496100c80836?w=1600&auto=format&fit=crop&q=80',
-    link: '/collections/cham-soc-da-mat',
+    link_url: '/collections/cham-soc-da-mat',
     sort_order: 1,
     active: true,
     created_at: new Date().toISOString()
@@ -204,7 +204,7 @@ export const mockBanners: Banner[] = [
     id: 'a303493e-7833-4f9e-a89e-4e4f2081f272',
     title: 'Định Hình Phong Cách Đàn Ông',
     image_url: 'https://images.unsplash.com/photo-1517832606589-7a598b389a03?w=1600&auto=format&fit=crop&q=80',
-    link: '/blogs/news/xu-huong-long-may-nam-2018-khong-the-khong-biet',
+    link_url: '/blogs/news/xu-huong-long-may-nam-2018-khong-the-khong-biet',
     sort_order: 2,
     active: true,
     created_at: new Date().toISOString()

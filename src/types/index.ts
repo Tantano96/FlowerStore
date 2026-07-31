@@ -88,7 +88,7 @@ export interface Banner {
   id: string;
   title?: string;
   image_url: string;
-  link?: string;
+  link_url?: string;
   sort_order: number;
   active: boolean;
   created_at: string;
