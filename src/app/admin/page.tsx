@@ -52,6 +52,7 @@ export default function AdminPage() {
   const [newBannerImage, setNewBannerImage] = useState('');
   const [newBannerLink, setNewBannerLink] = useState('');
   const [newBannerOrder, setNewBannerOrder] = useState('1');
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
     // Check if logged in in this session
@@ -249,10 +250,33 @@ export default function AdminPage() {
       sort_order: parseInt(newBannerOrder) || 1,
       active: true
     };
-    await dbService.createBanner(banner);
+    if (editingBanner) {
+      await dbService.updateBanner(editingBanner.id, banner);
+    } else {
+      await dbService.createBanner(banner);
+    }
     setShowAddBanner(false);
+    setEditingBanner(null);
     loadCmsData();
     // clear fields
+    setNewBannerTitle('');
+    setNewBannerImage('');
+    setNewBannerLink('');
+    setNewBannerOrder('1');
+  };
+
+  const handleEditBanner = (b: Banner) => {
+    setEditingBanner(b);
+    setNewBannerTitle(b.title || '');
+    setNewBannerImage(b.image_url);
+    setNewBannerLink(b.link_url || '');
+    setNewBannerOrder(b.sort_order.toString());
+    setShowAddBanner(true);
+  };
+
+  const handleCancelBannerEdit = () => {
+    setShowAddBanner(false);
+    setEditingBanner(null);
     setNewBannerTitle('');
     setNewBannerImage('');
     setNewBannerLink('');
@@ -761,7 +785,9 @@ export default function AdminPage() {
 
               {showAddBanner ? (
                 <form onSubmit={handleAddBannerSubmit} className="bg-white p-6 border border-gray-100 rounded-2xl shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">THÊM BANNER MỚI</h3>
+                  <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">
+                    {editingBanner ? 'CẬP NHẬT BANNER' : 'THÊM BANNER MỚI'}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-700">Tiêu đề Banner *</label>
@@ -816,7 +842,7 @@ export default function AdminPage() {
                   </div>
                   <div className="flex space-x-3 pt-2">
                     <button type="submit" className="bg-primary text-white px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-opacity-95 shadow-sm">Lưu lại</button>
-                    <button type="button" onClick={() => setShowAddBanner(false)} className="border border-gray-200 text-gray-700 px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-gray-50">Hủy</button>
+                    <button type="button" onClick={handleCancelBannerEdit} className="border border-gray-200 text-gray-700 px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-gray-50">Hủy</button>
                   </div>
                 </form>
               ) : (
@@ -833,13 +859,24 @@ export default function AdminPage() {
                       </div>
                       <div className="p-4 pt-0 flex justify-between items-center border-t border-gray-50 mt-2 bg-gray-50/50 py-3">
                         <span className="text-[10px] bg-green-50 text-green-600 font-bold px-2 py-0.5 rounded">Hoạt động</span>
-                        <button 
-                          onClick={() => handleDeleteBanner(b.id)}
-                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
-                          title="Xóa Banner"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => handleEditBanner(b)}
+                            className="p-1.5 text-gray-500 hover:bg-gray-100 hover:text-primary rounded transition-colors"
+                            title="Sửa Banner"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteBanner(b.id)}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                            title="Xóa Banner"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

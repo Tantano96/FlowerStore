@@ -472,6 +472,28 @@ export const dbService = {
     return true;
   },
 
+  async updateBanner(id: string, banner: Omit<Banner, 'id' | 'created_at'>) {
+    if (supabase) {
+      try {
+        const { error } = await supabase
+          .from('banners')
+          .update({ ...banner })
+          .eq('id', id);
+        if (!error) return true;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const index = localBanners.findIndex(b => b.id === id);
+    if (index > -1) {
+      localBanners[index] = {
+        ...localBanners[index],
+        ...banner
+      };
+    }
+    return true;
+  },
+
   // SETTINGS
   async getSettings() {
     if (supabase) {
