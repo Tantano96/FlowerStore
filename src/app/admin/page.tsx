@@ -46,6 +46,13 @@ export default function AdminPage() {
   const [newPostImage, setNewPostImage] = useState('');
   const [postPreviewMode, setPostPreviewMode] = useState<'edit' | 'preview'>('edit');
 
+  // New Banner Form
+  const [showAddBanner, setShowAddBanner] = useState(false);
+  const [newBannerTitle, setNewBannerTitle] = useState('');
+  const [newBannerImage, setNewBannerImage] = useState('');
+  const [newBannerLink, setNewBannerLink] = useState('');
+  const [newBannerOrder, setNewBannerOrder] = useState('1');
+
   useEffect(() => {
     // Check if logged in in this session
     const logged = localStorage.getItem('coolbeauty_admin_logged');
@@ -229,6 +236,32 @@ export default function AdminPage() {
   const handleDeletePost = async (id: string) => {
     if (confirm('Bạn chắc chắn muốn xóa bài viết này?')) {
       await dbService.deletePost(id);
+      loadCmsData();
+    }
+  };
+
+  const handleAddBannerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const banner = {
+      title: newBannerTitle,
+      image_url: newBannerImage,
+      link_url: newBannerLink || undefined,
+      sort_order: parseInt(newBannerOrder) || 1,
+      active: true
+    };
+    await dbService.createBanner(banner);
+    setShowAddBanner(false);
+    loadCmsData();
+    // clear fields
+    setNewBannerTitle('');
+    setNewBannerImage('');
+    setNewBannerLink('');
+    setNewBannerOrder('1');
+  };
+
+  const handleDeleteBanner = async (id: string) => {
+    if (confirm('Bạn có chắc muốn xóa banner này?')) {
+      await dbService.deleteBanner(id);
       loadCmsData();
     }
   };
@@ -717,21 +750,101 @@ export default function AdminPage() {
           {/* Active Tab: Banners */}
           {activeTab === 'banners' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold font-serif text-gray-950">Ảnh Banners Trang Chủ</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {banners.map(b => (
-                  <div key={b.id} className="border border-gray-100 rounded-2xl bg-white overflow-hidden shadow-sm">
-                    <img src={b.image_url} alt="Banner" className="w-full h-44 object-cover" />
-                    <div className="p-4 flex justify-between items-center">
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-950 truncate max-w-[200px]">{b.title || 'Untitled Banner'}</h4>
-                        <span className="text-[10px] text-gray-400 font-mono">Thứ tự hiển thị: {b.sort_order}</span>
-                      </div>
-                      <span className="text-[10px] bg-green-50 text-green-600 font-bold px-2 py-0.5 rounded">Hoạt động</span>
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold font-serif text-gray-950">Ảnh Banners Trang Chủ</h2>
+                {!showAddBanner && (
+                  <button onClick={() => setShowAddBanner(true)} className="bg-primary text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center space-x-1 hover:bg-opacity-95 shadow-sm">
+                    <Plus className="w-4 h-4" /> <span>Thêm Banner</span>
+                  </button>
+                )}
+              </div>
+
+              {showAddBanner ? (
+                <form onSubmit={handleAddBannerSubmit} className="bg-white p-6 border border-gray-100 rounded-2xl shadow-sm space-y-4">
+                  <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">THÊM BANNER MỚI</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-700">Tiêu đề Banner *</label>
+                      <input type="text" required value={newBannerTitle} onChange={e => setNewBannerTitle(e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-700">Thứ tự hiển thị (Số)</label>
+                      <input type="number" required value={newBannerOrder} onChange={e => setNewBannerOrder(e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" />
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-700 block">Hình ảnh Banner</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-gray-500 font-light block">Tải từ thiết bị:</span>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const url = await dbService.uploadImage(file);
+                                setNewBannerImage(url);
+                              }
+                            }}
+                            className="w-full p-2 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-gray-500 font-light block">Hoặc dán URL ảnh:</span>
+                          <input 
+                            type="url" 
+                            value={newBannerImage} 
+                            onChange={e => setNewBannerImage(e.target.value)} 
+                            placeholder="https://..."
+                            className="w-full p-2.5 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" 
+                          />
+                        </div>
+                      </div>
+                      {newBannerImage && (
+                        <div className="pt-2">
+                          <span className="text-[10px] text-gray-400 font-light block mb-1">Xem trước banner:</span>
+                          <img src={newBannerImage} alt="Preview" className="w-full h-32 object-cover rounded-md border border-gray-200" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-700">Đường dẫn liên kết (Link URL)</label>
+                      <input type="text" value={newBannerLink} onChange={e => setNewBannerLink(e.target.value)} placeholder="/products/..." className="w-full p-2.5 rounded-lg border border-gray-200 text-xs focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                  </div>
+                  <div className="flex space-x-3 pt-2">
+                    <button type="submit" className="bg-primary text-white px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-opacity-95 shadow-sm">Lưu lại</button>
+                    <button type="button" onClick={() => setShowAddBanner(false)} className="border border-gray-200 text-gray-700 px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-gray-50">Hủy</button>
+                  </div>
+                </form>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {banners.map(b => (
+                    <div key={b.id} className="border border-gray-100 rounded-2xl bg-white overflow-hidden shadow-sm flex flex-col justify-between">
+                      <div>
+                        <img src={b.image_url} alt="Banner" className="w-full h-44 object-cover" />
+                        <div className="p-4">
+                          <h4 className="text-xs font-bold text-gray-950 truncate">{b.title || 'Untitled Banner'}</h4>
+                          <p className="text-[10px] text-gray-400 font-mono mt-1">Thứ tự hiển thị: {b.sort_order}</p>
+                          {b.link_url && <p className="text-[10px] text-[#ff5258] truncate mt-1">Link: {b.link_url}</p>}
+                        </div>
+                      </div>
+                      <div className="p-4 pt-0 flex justify-between items-center border-t border-gray-50 mt-2 bg-gray-50/50 py-3">
+                        <span className="text-[10px] bg-green-50 text-green-600 font-bold px-2 py-0.5 rounded">Hoạt động</span>
+                        <button 
+                          onClick={() => handleDeleteBanner(b.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="Xóa Banner"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

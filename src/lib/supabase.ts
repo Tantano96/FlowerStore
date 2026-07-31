@@ -437,6 +437,41 @@ export const dbService = {
     return localBanners.filter(b => b.active).sort((a, b) => a.sort_order - b.sort_order);
   },
 
+  async createBanner(banner: Omit<Banner, 'id' | 'created_at'>) {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('banners')
+          .insert([{ ...banner }])
+          .select()
+          .single();
+        if (!error && data) return data as Banner;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const newB: Banner = {
+      ...banner,
+      id: Math.random().toString(36).substr(2, 9),
+      created_at: new Date().toISOString()
+    };
+    localBanners.push(newB);
+    return newB;
+  },
+
+  async deleteBanner(id: string) {
+    if (supabase) {
+      try {
+        await supabase.from('banners').delete().eq('id', id);
+        return true;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    localBanners = localBanners.filter(b => b.id !== id);
+    return true;
+  },
+
   // SETTINGS
   async getSettings() {
     if (supabase) {
